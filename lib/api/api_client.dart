@@ -1,6 +1,4 @@
 import 'dart:convert';
-import 'package:flutter/cupertino.dart';
-import 'package:http/http.dart' as http;
 import 'package:nail_apps/models/client/client.dart';
 
 import 'api_core.dart';
@@ -13,8 +11,15 @@ class ApiClient {
   Future<List<Client>> getClients() async {
     try {
       final response =  await _apiCore.get('clients');
-      final List<dynamic> data = jsonDecode(response.body);
-      return data.map((json) => Client.fromJson(json)).toList();
+      final data = jsonDecode(response.body);
+
+      if (data is List) {
+        return data.map((json) => Client.fromJson(json)).toList();
+      } else if (data['data'] != null) {
+        return (data['data'] as List).map((json) => Client.fromJson(json)).toList();
+      } else {
+        throw Exception('Invalid response format');
+      }
     } catch (e) {
       throw Exception('Failed to load clients: $e');
     }
@@ -24,7 +29,7 @@ class ApiClient {
     try {
       final response = await _apiCore.post('clients', client.toJson());
       final dynamic data = jsonDecode(response.body);
-      return Client.fromJson(data);
+      return Client.fromJson(data['data']);
     } catch (e) {
       throw Exception('Failed to create client: $e');
     }
@@ -34,7 +39,7 @@ class ApiClient {
     try {
       final response = await _apiCore.put('clients/${client.id}', client.toJson());
       final dynamic data = jsonDecode(response.body);
-      return Client.fromJson(data);
+      return Client.fromJson(data['data']);
     } catch (e) {
       throw Exception('Failed to update client: $e');
     }

@@ -3,8 +3,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart' as http;
 
 class ApiCore {
-  // static const String baseUrl = 'http://127.0.0.1:85/api/v1';
-  static const String baseUrl = 'https://2300aaf70d6540.lhr.life/api/v1';
+  static const String baseUrl = 'http://127.0.0.1:85/api/v1';
+  // static const String baseUrl = 'https://2300aaf70d6540.lhr.life/api/v1';
   String? _token;
 
   ApiCore();

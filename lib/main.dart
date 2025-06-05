@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:nail_apps/screens/clients/clients_screen.dart';
 import 'package:provider/provider.dart';
 import 'api/api_core.dart';
 import 'screens/auth/login_screen.dart';
@@ -8,10 +9,6 @@ import 'screens/auth/register_screen.dart';
 import 'screens/home_screen.dart';
 
 void main() {
-  // Добавьте для веб-версии
-  // HttpClient httpClient = HttpClient();
-  // httpClient.badCertificateCallback = (cert, host, port) => true;
-
   runApp(MyApp());
 }
 
@@ -32,6 +29,7 @@ class MyApp extends StatelessWidget {
           '/login': (context) => LoginScreen(),
           '/register': (context) => RegisterScreen(),
           '/home': (context) => HomeScreen(),
+          '/clients': (context) => ClientsScreen(),
         },
       ),
     );

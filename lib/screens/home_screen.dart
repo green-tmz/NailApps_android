@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import '../api/auth_api.dart';
 import '../api/api_client.dart';
 // import 'auth/login_screen.dart';
-// import 'clients/clients_screen.dart';
+import 'clients/clients_screen.dart';
 // import 'masters/masters_screen.dart';
 // import 'specializations/specializations_screen.dart';
 // import 'services/services_screen.dart';
@@ -66,8 +66,8 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     switch (_selectedIndex) {
-      // case 0:
-      //   return ClientsScreen();
+      case 0:
+        return ClientsScreen();
       // case 1:
       //   return MastersScreen();
       // case 2:

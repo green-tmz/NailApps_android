@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'package:flutter/cupertino.dart';
-import 'package:http/http.dart' as http;
 import 'package:nail_apps/models/specialization/specialization.dart';
 import 'api_core.dart';
 

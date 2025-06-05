@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
 import 'package:nail_apps/api/api_core.dart';
 import 'package:provider/provider.dart';
 import '../../api/api_client.dart';
@@ -21,6 +22,12 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
   late TextEditingController _emailController;
   bool _isLoading = false;
 
+  // Маска для телефона
+  final phoneMaskFormatter = MaskTextInputFormatter(
+    mask: '+7 (###) ###-##-##',
+    filter: {"#": RegExp(r'[0-9]')},
+  );
+
   @override
   void initState() {
     super.initState();
@@ -28,6 +35,11 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
     _lastNameController = TextEditingController(text: widget.client?.lastName ?? '');
     _phoneController = TextEditingController(text: widget.client?.phone ?? '');
     _emailController = TextEditingController(text: widget.client?.email ?? '');
+
+    // Применяем маску к существующему номеру
+    if (widget.client?.phone != null) {
+      _phoneController.text = phoneMaskFormatter.maskText(widget.client!.phone!);
+    }
   }
 
   @override
@@ -47,25 +59,30 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
     });
 
     try {
-      final apiCore = Provider.of<ApiClient>(context, listen: false);
-      final clientApi = ApiClient(apiCore as ApiCore);
+      final apiCore = Provider.of<ApiCore>(context, listen: false);
+      final apiClient = ApiClient(apiCore);
+
+      // Очищаем номер телефона от маски перед сохранением
+      String? phone = _phoneController.text.isNotEmpty
+          ? _phoneController.text.replaceAll(RegExp(r'[^0-9]'), '')
+          : null;
 
       final client = Client(
         id: widget.client?.id ?? 0,
         userId: widget.client?.userId,
         firstName: _firstNameController.text,
         lastName: _lastNameController.text.isNotEmpty ? _lastNameController.text : null,
-        phone: _phoneController.text.isNotEmpty ? _phoneController.text : null,
+        phone: phone,
         email: _emailController.text.isNotEmpty ? _emailController.text : null,
       );
 
       if (widget.client == null) {
-        await clientApi.createClient(client);
+        await apiClient.createClient(client);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Клиент успешно создан')),
         );
       } else {
-        await clientApi.updateClient(client);
+        await apiClient.updateClient(client);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Данные клиента обновлены')),
         );
@@ -81,6 +98,12 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
         _isLoading = false;
       });
     }
+  }
+
+  // Проверка, что номер телефона заполнен полностью
+  bool _isPhoneValid(String? value) {
+    if (value == null || value.isEmpty) return widget.client != null;
+    return value.replaceAll(RegExp(r'[^0-9]'), '').length == 11;
   }
 
   @override
@@ -127,10 +150,21 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
               TextFormField(
                 controller: _phoneController,
                 decoration: InputDecoration(
-                  labelText: 'Телефон',
+                  labelText: 'Телефон${widget.client == null ? '*' : ''}',
                   border: OutlineInputBorder(),
+                  hintText: '+7 (___) ___-__-__',
                 ),
                 keyboardType: TextInputType.phone,
+                inputFormatters: [phoneMaskFormatter],
+                validator: (value) {
+                  if (widget.client == null && (value == null || value.isEmpty)) {
+                    return 'Поле обязательно для заполнения';
+                  }
+                  if (value != null && value.isNotEmpty && !_isPhoneValid(value)) {
+                    return 'Введите полный номер телефона';
+                  }
+                  return null;
+                },
               ),
               SizedBox(height: 16),
               TextFormField(
@@ -151,15 +185,15 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
               _isLoading
                   ? Center(child: CircularProgressIndicator())
                   : ElevatedButton(
-                      onPressed: _submitForm,
-                      child: Padding(
-                        padding: const EdgeInsets.all(12.0),
-                        child: Text(
-                          widget.client == null ? 'СОЗДАТЬ КЛИЕНТА' : 'СОХРАНИТЬ ИЗМЕНЕНИЯ',
-                          style: TextStyle(fontSize: 16),
-                        ),
-                      ),
-                    ),
+                onPressed: _submitForm,
+                child: Padding(
+                  padding: const EdgeInsets.all(12.0),
+                  child: Text(
+                    widget.client == null ? 'СОЗДАТЬ КЛИЕНТА' : 'СОХРАНИТЬ ИЗМЕНЕНИЯ',
+                    style: TextStyle(fontSize: 16),
+                  ),
+                ),
+              ),
             ],
           ),
         ),
@@ -193,8 +227,8 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
     });
 
     try {
-      final apiCore = Provider.of<ApiClient>(context, listen: false);
-      final clientApi = ApiClient(apiCore as ApiCore);
+      final apiCore = Provider.of<ApiCore>(context, listen: false);
+      final clientApi = ApiClient(apiCore);
       await clientApi.deleteClient(widget.client!.id);
 
       ScaffoldMessenger.of(context).showSnackBar(
