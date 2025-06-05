@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:nail_apps/api/api_core.dart';
 import 'package:provider/provider.dart';
 import '../api/auth_api.dart';
 import '../api/api_client.dart';
 // import 'auth/login_screen.dart';
-import 'clients/clients_screen.dart';
+// import 'clients/clients_screen.dart';
 // import 'masters/masters_screen.dart';
 // import 'specializations/specializations_screen.dart';
 // import 'services/services_screen.dart';
@@ -26,12 +27,12 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _loadUserData() async {
     try {
-      final apiClient = Provider.of<ApiClient>(context, listen: false);
-      final authApi = AuthApi(apiClient);
+      final apiCore = Provider.of<ApiCore>(context, listen: false);
+      final authApi = AuthApi(apiCore);
       final userData = await authApi.getMe();
-      
+
       setState(() {
-        _userName = '${userData['first_name']} ${userData['last_name']}';
+        _userName = '${userData['data']['first_name']} ${userData['data']['last_name']}';
         _isLoading = false;
       });
     } catch (e) {
@@ -42,8 +43,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _logout() async {
     try {
-      final apiClient = Provider.of<ApiClient>(context, listen: false);
-      final authApi = AuthApi(apiClient);
+      final apiCore = Provider.of<ApiCore>(context, listen: false);
+      final authApi = AuthApi(apiCore);
       await authApi.logout();
       Navigator.pushReplacementNamed(context, '/login');
     } catch (e) {
@@ -65,8 +66,8 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     switch (_selectedIndex) {
-      case 0:
-        return ClientsScreen();
+      // case 0:
+      //   return ClientsScreen();
       // case 1:
       //   return MastersScreen();
       // case 2:

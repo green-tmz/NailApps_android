@@ -2,14 +2,15 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'api/api_client.dart';
+import 'api/api_core.dart';
 import 'screens/auth/login_screen.dart';
+import 'screens/auth/register_screen.dart';
 import 'screens/home_screen.dart';
 
 void main() {
   // Добавьте для веб-версии
-  HttpClient httpClient = HttpClient();
-  httpClient.badCertificateCallback = (cert, host, port) => true;
+  // HttpClient httpClient = HttpClient();
+  // httpClient.badCertificateCallback = (cert, host, port) => true;
 
   runApp(MyApp());
 }
@@ -20,7 +21,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Provider(
-      create: (context) => ApiClient(),
+      create: (context) => ApiCore(),
       child: MaterialApp(
         title: 'NailApps',
         theme: ThemeData(
@@ -29,6 +30,7 @@ class MyApp extends StatelessWidget {
         initialRoute: '/login',
         routes: {
           '/login': (context) => LoginScreen(),
+          '/register': (context) => RegisterScreen(),
           '/home': (context) => HomeScreen(),
         },
       ),

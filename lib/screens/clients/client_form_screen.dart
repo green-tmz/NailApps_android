@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:nail_apps/api/api_core.dart';
 import 'package:provider/provider.dart';
 import '../../api/api_client.dart';
 import '../../models/client/client.dart';
@@ -46,8 +47,8 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
     });
 
     try {
-      final apiClient = Provider.of<ApiClient>(context, listen: false);
-      final clientApi = ApiClient();
+      final apiCore = Provider.of<ApiClient>(context, listen: false);
+      final clientApi = ApiClient(apiCore as ApiCore);
 
       final client = Client(
         id: widget.client?.id ?? 0,
@@ -192,8 +193,8 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
     });
 
     try {
-      final apiClient = Provider.of<ApiClient>(context, listen: false);
-      final clientApi = ApiClient();
+      final apiCore = Provider.of<ApiClient>(context, listen: false);
+      final clientApi = ApiClient(apiCore as ApiCore);
       await clientApi.deleteClient(widget.client!.id);
 
       ScaffoldMessenger.of(context).showSnackBar(

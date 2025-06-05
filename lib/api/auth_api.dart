@@ -3,12 +3,13 @@ import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart' as http;
 
-import 'api_client.dart';
+import 'api_core.dart';
 
 class AuthApi {
-  final ApiClient _apiClient;
+  final ApiCore _apiCore;
+  String? _userName;
 
-  AuthApi(this._apiClient);
+  AuthApi(this._apiCore);
 
   Future<Map<String, dynamic>> register({
     required String firstName,
@@ -20,7 +21,7 @@ class AuthApi {
     required String passwordConfirmation,
     required List<int> specializationIds,
   }) async {
-    final response = await _apiClient.post('auth/register', {
+    final response = await _apiCore.post('auth/register', {
       'first_name': firstName,
       'last_name': lastName,
       'second_name': secondName,
@@ -41,7 +42,7 @@ class AuthApi {
     try {
       debugPrint('[Auth] Starting login for: $login');
 
-      final response = await _apiClient.post(
+      final response = await _apiCore.post(
         'auth/login',
         {
           'login': login.trim(),
@@ -50,13 +51,12 @@ class AuthApi {
       );
 
       final data = jsonDecode(response.body) as Map<String, dynamic>;
-      debugPrint('[Auth] Response data: ${data['data']}');
 
       if (data['data']['token'] == null) {
         throw Exception('Token not received in response');
       }
 
-      _apiClient.setToken(data['data']['token'] as String);
+      _apiCore.setToken(data['data']['token'] as String);
 
       return data;
     } on FormatException {
@@ -68,12 +68,14 @@ class AuthApi {
   }
 
   Future<Map<String, dynamic>> getMe() async {
-    final response = await _apiClient.get('auth/me');
+    final response = await _apiCore.get('auth/me');
+    final data = jsonDecode(response.body);
+    _userName = data['data']['first_name'] + ' ' + data['data']['last_name'];
     return jsonDecode(response.body);
   }
 
   Future<void> logout() async {
-    await _apiClient.post('auth/logout', {});
-    _apiClient.setToken(null);
+    await _apiCore.post('auth/logout', {});
+    _apiCore.setToken(null);
   }
 }
