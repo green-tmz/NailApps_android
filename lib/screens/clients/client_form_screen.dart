@@ -20,6 +20,8 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
   late TextEditingController _lastNameController;
   late TextEditingController _phoneController;
   late TextEditingController _emailController;
+  late TextEditingController _notesController;
+  DateTime? _birthDate;
   bool _isLoading = false;
 
   // Маска для телефона
@@ -33,14 +35,43 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
     super.initState();
     _firstNameController = TextEditingController(text: widget.client?.firstName ?? '');
     _lastNameController = TextEditingController(text: widget.client?.lastName ?? '');
-    _phoneController = TextEditingController(text: widget.client?.phone ?? '');
     _emailController = TextEditingController(text: widget.client?.email ?? '');
+    _notesController = TextEditingController(text: widget.client?.notes ?? '');
+    _birthDate = widget.client?.birthDate;
 
-    // Применяем маску к существующему номеру
-    if (widget.client?.phone != null) {
-      _phoneController.text = phoneMaskFormatter.maskText(widget.client!.phone!);
+    _phoneController = TextEditingController();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (widget.client?.phone != null) {
+        _applyPhoneMask(widget.client!.phone!);
+      }
+    });
+  }
+
+  void _applyPhoneMask(String phone) {
+    final cleanPhone = phone.replaceAll(RegExp(r'[^0-9]'), '');
+
+    final formattedPhone = cleanPhone.startsWith('7') && cleanPhone.length == 11
+        ? cleanPhone.substring(1)
+        : cleanPhone;
+
+    _phoneController.text = phoneMaskFormatter.maskText(formattedPhone);
+  }
+
+  Future<void> _selectBirthDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: _birthDate ?? DateTime.now(),
+      firstDate: DateTime(1900),
+      lastDate: DateTime.now(),
+    );
+    if (picked != null && picked != _birthDate) {
+      setState(() {
+        _birthDate = picked;
+      });
     }
   }
+
 
   @override
   void dispose() {
@@ -48,6 +79,7 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
     _lastNameController.dispose();
     _phoneController.dispose();
     _emailController.dispose();
+    _notesController.dispose();
     super.dispose();
   }
 
@@ -74,6 +106,8 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
         lastName: _lastNameController.text.isNotEmpty ? _lastNameController.text : null,
         phone: phone,
         email: _emailController.text.isNotEmpty ? _emailController.text : null,
+        notes: _notesController.text.isNotEmpty ? _notesController.text : null,
+        birthDate: _birthDate,
       );
 
       if (widget.client == null) {
@@ -156,6 +190,16 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
                 ),
                 keyboardType: TextInputType.phone,
                 inputFormatters: [phoneMaskFormatter],
+                onChanged: (value) {
+                  // Дополнительная проверка и коррекция ввода
+                  if (value.startsWith('+7 (7')) {
+                    final corrected = value.replaceFirst('+7 (7', '+7 (');
+                    _phoneController.value = _phoneController.value.copyWith(
+                      text: corrected,
+                      selection: TextSelection.collapsed(offset: corrected.length),
+                    );
+                  }
+                },
                 validator: (value) {
                   if (widget.client == null && (value == null || value.isEmpty)) {
                     return 'Поле обязательно для заполнения';
@@ -180,6 +224,38 @@ class _ClientFormScreenState extends State<ClientFormScreen> {
                   }
                   return null;
                 },
+              ),
+              SizedBox(height: 24),
+              SizedBox(height: 16),
+              InkWell(
+                onTap: () => _selectBirthDate(context),
+                child: InputDecorator(
+                  decoration: InputDecoration(
+                    labelText: 'Дата рождения',
+                    border: OutlineInputBorder(),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        _birthDate != null
+                            ? '${_birthDate!.day}.${_birthDate!.month}.${_birthDate!.year}'
+                            : 'Выберите дату',
+                      ),
+                      Icon(Icons.calendar_today),
+                    ],
+                  ),
+                ),
+              ),
+              SizedBox(height: 16),
+              TextFormField(
+                controller: _notesController,
+                decoration: InputDecoration(
+                  labelText: 'Примечания',
+                  border: OutlineInputBorder(),
+                ),
+                maxLines: 3,
+                keyboardType: TextInputType.multiline,
               ),
               SizedBox(height: 24),
               _isLoading

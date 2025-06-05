@@ -5,6 +5,8 @@ class Client {
   final String? lastName;
   final String? phone;
   final String? email;
+  final String? notes;
+  final DateTime? birthDate;
 
   Client({
     required this.id,
@@ -13,6 +15,8 @@ class Client {
     this.lastName,
     this.phone,
     this.email,
+    this.notes,
+    this.birthDate,
   });
 
   factory Client.fromJson(Map<String, dynamic> json) {
@@ -23,6 +27,10 @@ class Client {
       lastName: json['last_name'],
       phone: json['phone'],
       email: json['email'],
+      notes: json['notes'],
+      birthDate: json['birth_date'] != null
+          ? DateTime.tryParse(json['birth_date'])
+          : null,
     );
   }
 
@@ -33,6 +41,8 @@ class Client {
       'last_name': lastName,
       'phone': phone,
       'email': email,
+      'notes': notes,
+      'birth_date': birthDate?.toIso8601String(),
     };
   }
 }
